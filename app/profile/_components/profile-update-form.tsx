@@ -12,58 +12,76 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { PasswordInput } from '@/components/ui/password-input';
 import { Button } from '@/components/ui/button';
 import { LoadingSwap } from '@/components/ui/loading-swap';
 import { authClient } from '@/lib/auth/auth-client';
 import { toast } from 'sonner';
 import { NumberInput } from '@/components/ui/number-input';
+import { useRouter } from 'next/navigation';
 
-const signUpSchema = z.object({
+const profileUpdateSchema = z.object({
   name: z.string().min(1),
   email: z.email(),
-  password: z.string().min(8),
   favoriteNumber: z.number().int(),
 });
 
-type SignUpForm = z.infer<typeof signUpSchema>;
+type ProfileUpdateForm = z.infer<typeof profileUpdateSchema>;
 
-export function SignUpTab({
-  openEmailVerificaitonTab,
+export function ProfileUpdateForm({
+  user,
 }: {
-  openEmailVerificaitonTab: (email: string) => void;
+  user: { name: string; email: string; favoriteNumber: number };
 }) {
+  const router = useRouter();
   const form = useForm({
-    resolver: zodResolver(signUpSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      password: '',
-    },
+    resolver: zodResolver(profileUpdateSchema),
+    defaultValues: user,
   });
 
-  const handleSignUp = async (data: SignUpForm) => {
-    const res = await authClient.signUp.email(
-      {
-        ...data,
-        callbackURL: '/',
-      },
-      {
-        onError: (error) => {
-          console.log('error =>', error);
-          toast.error(error.error.message || 'Failed to sign up');
-        },
-      },
-    );
+  const handleProfileUpdate = async (data: ProfileUpdateForm) => {
+    const promises = [
+      authClient.updateUser({
+        name: data.name,
+        favoriteNumber: data.favoriteNumber,
+      }),
+    ];
 
-    if (res.error === null && !res.data.user.emailVerified) {
-      openEmailVerificaitonTab(data.email);
+    if (data.email !== user.email) {
+      console.log('data.email =>', data.email);
+      promises.push(
+        authClient.changeEmail({
+          newEmail: data.email,
+          callbackURL: '/profile',
+        }),
+      );
     }
+
+    const res = await Promise.all(promises);
+
+    const updateUserResult = res[0];
+    const emailChangeResult = res[1] ?? { error: false };
+
+    if (updateUserResult.error) {
+      toast.error(updateUserResult.error.message || 'Failed to update profile');
+    } else if (emailChangeResult.error) {
+      toast.error(emailChangeResult.error.message || 'Failed to change email');
+    } else {
+      if (data.email !== user.email) {
+        toast.success('Verify your new email to complete the change.');
+      } else {
+        toast.success('Profile updated successfully');
+      }
+    }
+
+    router.refresh();
   };
 
   return (
     <Form {...form}>
-      <form className='space-y-4' onSubmit={form.handleSubmit(handleSignUp)}>
+      <form
+        className='space-y-4'
+        onSubmit={form.handleSubmit(handleProfileUpdate)}
+      >
         <FormField
           control={form.control}
           name='name'
@@ -94,20 +112,6 @@ export function SignUpTab({
 
         <FormField
           control={form.control}
-          name='password'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <PasswordInput {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
           name='favoriteNumber'
           render={({ field }) => (
             <FormItem>
@@ -126,7 +130,7 @@ export function SignUpTab({
           className='w-full'
         >
           <LoadingSwap isLoading={form.formState.isSubmitting}>
-            Sign Up
+            Update Profile
           </LoadingSwap>
         </Button>
       </form>

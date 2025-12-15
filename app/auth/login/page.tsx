@@ -13,7 +13,7 @@ import { SignUpTab } from './_components/sign-up-tab';
 import { Separator } from '@/components/ui/separator';
 import { SocialAuthButtons } from './_components/social-auth-buttons';
 import { useEffect, useState } from 'react';
-import { authClient } from '@/lib/auth-client';
+import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import { EmailVerification } from './_components/email-verification';
 import { ForgotPassword } from './_components/forgot-password';
