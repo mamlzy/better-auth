@@ -4,9 +4,19 @@ import { BetterAuthActionButton } from '@/components/auth/better-auth-action-but
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth/auth-client';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
   const { data: session, isPending: loading } = authClient.useSession();
+  const [hasAdminPermission, setHasAdminPermission] = useState(false);
+
+  useEffect(() => {
+    authClient.admin
+      .hasPermission({ permission: { user: ['list'] } })
+      .then(({ data }) => {
+        setHasAdminPermission(data?.success ?? false);
+      });
+  }, []);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -29,6 +39,11 @@ export default function Home() {
               <Button size='lg' asChild>
                 <Link href='/profile'>Profile</Link>
               </Button>
+              {hasAdminPermission && (
+                <Button variant='outline' size='lg' asChild>
+                  <Link href='/admin'>Admin</Link>
+                </Button>
+              )}
               <BetterAuthActionButton
                 size='lg'
                 variant='destructive'
