@@ -7,11 +7,14 @@ import { sendEmailVerificationEmail } from '../emails/email-verification';
 import { createAuthMiddleware } from 'better-auth/api';
 import { sendWelcomeEmail } from '../emails/welcome-email';
 import { sendDeleteAccountVerificationEmail } from '../emails/delete-account-verification';
+import { twoFactor } from 'better-auth/plugins/two-factor';
 
 export const auth = betterAuth({
   user: {
     changeEmail: {
       enabled: true,
+      // notes: `sendChangeEmailConfirmation` here make the email does not update
+      //  so just use emailVerification.sendVerificationEmail works
       // sendChangeEmailConfirmation: async ({ user, url, newEmail }) => {
       //   await sendEmailVerificationEmail({
       //     user: { ...user, email: newEmail },
@@ -72,7 +75,7 @@ export const auth = betterAuth({
       maxAge: 60, // 1 minute
     },
   },
-  plugins: [nextCookies()],
+  plugins: [twoFactor(), nextCookies()],
   database: drizzleAdapter(db, {
     provider: 'pg',
   }),

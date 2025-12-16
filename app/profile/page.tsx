@@ -27,6 +27,8 @@ import { ChangePasswordForm } from './_components/change-password-form';
 import { SessionManagement } from './_components/session-management';
 import { AccountLinking } from './_components/account-linking';
 import { AccountDeletion } from './_components/account-deletion';
+import { Badge } from '@/components/ui/badge';
+import { TwoFactorAuth } from './_components/two-factor-auth';
 
 export default async function Page() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -105,7 +107,10 @@ export default async function Page() {
 
         <TabsContent value='security'>
           <LoadingSuspense>
-            <SecurityTab email={session.user.email} />
+            <SecurityTab
+              email={session.user.email}
+              isTwoFactorEnabled={session.user.twoFactorEnabled ?? false}
+            />
           </LoadingSuspense>
         </TabsContent>
 
@@ -174,7 +179,13 @@ async function SessionsTab({
   );
 }
 
-async function SecurityTab({ email }: { email: string }) {
+async function SecurityTab({
+  email,
+  isTwoFactorEnabled,
+}: {
+  email: string;
+  isTwoFactorEnabled: boolean;
+}) {
   const accounts = await auth.api.listUserAccounts({
     headers: await headers(),
   });
@@ -206,6 +217,20 @@ async function SecurityTab({ email }: { email: string }) {
           </CardHeader>
           <CardContent>
             <SetPasswordButton email={email} />
+          </CardContent>
+        </Card>
+      )}
+
+      {hasPasswordAccount && (
+        <Card>
+          <CardHeader className='flex items-center justify-between gap-2'>
+            <CardTitle>Two-Factor Authentication</CardTitle>
+            <Badge variant={isTwoFactorEnabled ? 'default' : 'secondary'}>
+              {isTwoFactorEnabled ? 'Enabled' : 'Disabled'}
+            </Badge>
+          </CardHeader>
+          <CardContent>
+            <TwoFactorAuth isEnabled={isTwoFactorEnabled} />
           </CardContent>
         </Card>
       )}
