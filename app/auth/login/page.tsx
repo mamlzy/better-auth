@@ -31,7 +31,7 @@ export default function Page() {
     });
   }, [router]);
 
-  const openEmailVerificaitonTab = (email: string) => {
+  const openEmailVerificationTab = (email: string) => {
     setEmail(email);
     setSelectedTab('email-verification');
   };
@@ -55,7 +55,7 @@ export default function Page() {
           </CardHeader>
           <CardContent>
             <SignInTab
-              openEmailVerificaitonTab={openEmailVerificaitonTab}
+              openEmailVerificaitonTab={openEmailVerificationTab}
               openForgotPasswordTab={() => setSelectedTab('forgot-password')}
             />
           </CardContent>
@@ -74,7 +74,7 @@ export default function Page() {
             <CardTitle>Sign Up</CardTitle>
           </CardHeader>
           <CardContent>
-            <SignUpTab openEmailVerificaitonTab={openEmailVerificaitonTab} />
+            <SignUpTab openEmailVerificationTab={openEmailVerificationTab} />
           </CardContent>
 
           <Separator />

@@ -29,9 +29,9 @@ const signUpSchema = z.object({
 type SignUpForm = z.infer<typeof signUpSchema>;
 
 export function SignUpTab({
-  openEmailVerificaitonTab: openEmailVerificationTab,
+  openEmailVerificationTab: openEmailVerificationTab,
 }: {
-  openEmailVerificaitonTab: (email: string) => void;
+  openEmailVerificationTab: (email: string) => void;
 }) {
   const form = useForm({
     resolver: zodResolver(signUpSchema),
