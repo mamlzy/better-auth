@@ -29,7 +29,7 @@ const signUpSchema = z.object({
 type SignUpForm = z.infer<typeof signUpSchema>;
 
 export function SignUpTab({
-  openEmailVerificaitonTab,
+  openEmailVerificaitonTab: openEmailVerificationTab,
 }: {
   openEmailVerificaitonTab: (email: string) => void;
 }) {
@@ -57,7 +57,7 @@ export function SignUpTab({
     );
 
     if (res.error === null && !res.data.user.emailVerified) {
-      openEmailVerificaitonTab(data.email);
+      openEmailVerificationTab(data.email);
     }
   };
 
