@@ -8,10 +8,18 @@ import { createAuthMiddleware } from 'better-auth/api';
 import { sendWelcomeEmail } from '../emails/welcome-email';
 import { sendDeleteAccountVerificationEmail } from '../emails/delete-account-verification';
 import { passkey } from '@better-auth/passkey';
-import { admin as adminPlugin, twoFactor } from 'better-auth/plugins';
+import {
+  admin as adminPlugin,
+  twoFactor,
+  organization,
+} from 'better-auth/plugins';
 import { ac, admin, user } from '@/components/auth/permissisons';
+import { sendOrganizationInviteEmail } from '../emails/organization-invite-email';
+import { desc, eq } from 'drizzle-orm';
+import { member } from '@/drizzle/schema';
 
 export const auth = betterAuth({
+  appName: 'Better Auth Demo',
   user: {
     changeEmail: {
       enabled: true,
@@ -87,6 +95,21 @@ export const auth = betterAuth({
         user,
       },
     }),
+    organization({
+      sendInvitationEmail: async ({
+        email,
+        organization,
+        inviter,
+        invitation,
+      }) => {
+        await sendOrganizationInviteEmail({
+          invitation,
+          inviter: inviter.user,
+          organization,
+          email,
+        });
+      },
+    }),
     nextCookies(),
   ],
   database: drizzleAdapter(db, {
@@ -105,5 +128,27 @@ export const auth = betterAuth({
         }
       }
     }),
+  },
+  databaseHooks: {
+    session: {
+      create: {
+        before: async (userSession) => {
+          const membership = await db.query.member.findFirst({
+            where: eq(member.userId, userSession.userId),
+            orderBy: [desc(member.createdAt)],
+            columns: {
+              organizationId: true,
+            },
+          });
+
+          return {
+            data: {
+              ...userSession,
+              activeOrganizationId: membership?.organizationId,
+            },
+          };
+        },
+      },
+    },
   },
 });
